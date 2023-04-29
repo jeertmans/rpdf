@@ -155,7 +155,7 @@ fn get_page_annotations_mut<'doc>(
             .unwrap(),
         Ok(Object::Array(_)) => {
             let page = document.get_dictionary_mut(page_id).unwrap();
-            page.get_mut(b"Annot")
+            page.get_mut(b"Annots")
                 .and_then(Object::as_array_mut)
                 .unwrap()
         }
