@@ -1,0 +1,23 @@
+[dependencies]
+anyhow = "1.0.70"
+clap = {version = "4.2.5", features = ["derive", "wrap_help", "env"]}
+clap_complete = "4.2.1"
+is-terminal = "0.4.7"
+lopdf = "0.30.0"
+owo-colors = "3.5.0"
+tabled = {version = "0.12.0", features = ["color"]}
+termcolor = "1.2.0"
+thiserror = "1.0.40"
+wild = "2.1.0"
+
+[package]
+authors = ["Jérome Eertmans <jeertmans@icloud.com>"]
+description = "PDF command-line utils written in Rust"
+edition = "2021"
+include = ["src/**/*", "LICENSE.md", "README.md"]
+keywords = ["pdf", "annotation", "cli"]
+license = "MIT"
+name = "rpdf"
+readme = "README.md"
+repository = "https://github.com/jeertmans/rpdf"
+version = "0.1.0"
