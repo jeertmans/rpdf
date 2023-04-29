@@ -162,7 +162,7 @@ fn get_page_annotations_mut<'doc>(
         Err(_) => {
             let page = document.get_dictionary_mut(page_id).unwrap();
             page.set(b"Annots".to_owned(), vec![]);
-            page.get_mut(b"Annot")
+            page.get_mut(b"Annots")
                 .and_then(Object::as_array_mut)
                 .unwrap()
         }
