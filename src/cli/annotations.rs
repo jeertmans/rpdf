@@ -1,5 +1,7 @@
-use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 
 use anyhow::{Context, Result};
 use clap::{ArgAction, Args, Parser, Subcommand};
@@ -118,7 +120,7 @@ impl Execute for Stats {
             table.with(BorderColor::filled(Color::FG_GREEN));
         }
 
-        writeln!(stdout, "{}", table)?;
+        writeln!(stdout, "{table}")?;
 
         Ok(())
     }
@@ -135,37 +137,37 @@ struct Merge {
     dest: PathBuf,
     /// Exclude a given annotation type when merging (multiple values allowed).
     ///
-    /// This is especially useful to avoid duplicating links, which are categorized
-    /// as "annotations" too. Excluded annotation will only be kept in <FILE 1>.
+    /// This is especially useful to avoid duplicating links, which are
+    /// categorized as "annotations" too. Excluded annotation will only be
+    /// kept in <FILE 1>.
     #[clap(short, long, default_value = "Link", action = ArgAction::Append)]
     exclude: Vec<String>,
 }
 
 /// Get mutable annotations (references) to a given page id.
-fn get_page_annotations_mut<'doc>(
-    document: &'doc mut Document,
-    page_id: ObjectId,
-) -> &'doc mut Vec<Object> {
+fn get_page_annotations_mut(document: &mut Document, page_id: ObjectId) -> &mut Vec<Object> {
     let page = document.get_dictionary(page_id).unwrap();
 
     match page.get(b"Annots") {
-        Ok(Object::Reference(ref id)) => document
-            .get_object_mut(*id)
-            .and_then(Object::as_array_mut)
-            .unwrap(),
+        Ok(Object::Reference(ref id)) => {
+            document
+                .get_object_mut(*id)
+                .and_then(Object::as_array_mut)
+                .unwrap()
+        },
         Ok(Object::Array(_)) => {
             let page = document.get_dictionary_mut(page_id).unwrap();
             page.get_mut(b"Annots")
                 .and_then(Object::as_array_mut)
                 .unwrap()
-        }
+        },
         Err(_) => {
             let page = document.get_dictionary_mut(page_id).unwrap();
             page.set(b"Annots".to_owned(), vec![]);
             page.get_mut(b"Annots")
                 .and_then(Object::as_array_mut)
                 .unwrap()
-        }
+        },
         _ => unreachable!(),
     }
 }
@@ -185,7 +187,7 @@ impl Execute for Merge {
         let mut annotations_map = HashMap::new();
 
         for file in &self.files[1..] {
-            let document = Document::load(&file)
+            let document = Document::load(file)
                 .with_context(|| format!("Failed to read PDF from: {}", file.to_str().unwrap()))?;
             for page in document.page_iter() {
                 document
@@ -229,24 +231,25 @@ impl Execute for Merge {
 }
 
 /// Get annotation ids to a given page id.
-fn get_page_annotations<'doc>(document: &'doc Document, page_id: ObjectId) -> Vec<ObjectId> {
+fn get_page_annotations(document: &Document, page_id: ObjectId) -> Vec<ObjectId> {
     let page = document.get_dictionary(page_id).unwrap();
     let mut ids = vec![];
 
     match page.get(b"Annots") {
-        Ok(Object::Reference(ref id)) => document
-            .get_object(*id)
-            .and_then(Object::as_array)
-            .unwrap()
-            .iter()
-            .flat_map(Object::as_reference)
-            .for_each(|id| ids.push(id)),
+        Ok(Object::Reference(ref id)) => {
+            document
+                .get_object(*id)
+                .and_then(Object::as_array)
+                .unwrap()
+                .iter()
+                .flat_map(Object::as_reference)
+                .for_each(|id| ids.push(id))
+        },
         Ok(Object::Array(a)) => {
-            a
-            .iter()
-            .flat_map(Object::as_reference)
-            .for_each(|id| ids.push(id))
-        }
+            a.iter()
+                .flat_map(Object::as_reference)
+                .for_each(|id| ids.push(id))
+        },
         Err(_) => {},
         _ => unreachable!(),
     }
@@ -261,7 +264,8 @@ struct Strip {
     /// Output file where resulting PDF is written.
     #[clap(short, long, default_value = "stripped_annotations.pdf")]
     dest: PathBuf,
-    /// Exclude a given annotation type from stripping (multiple values allowed).
+    /// Exclude a given annotation type from stripping (multiple values
+    /// allowed).
     #[clap(short, long, default_value = "Link", action = ArgAction::Append)]
     exclude: Vec<String>,
 }

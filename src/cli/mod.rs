@@ -61,10 +61,10 @@ impl Cli {
         match self.command {
             Command::Annotations(cmd) => {
                 cmd.execute(&mut stdout)?;
-            }
+            },
             Command::Completions(cmd) => {
                 cmd.execute(&mut stdout)?;
-            }
+            },
         }
         Ok(())
     }
