@@ -130,7 +130,7 @@ struct Merge {
     /// PDF filepaths (at least two files).
     #[clap(num_args(2..), value_names = ["FILE 1", "FILE 2"], next_line_help = true, required = true)]
     files: Vec<PathBuf>,
-    /// Output file were resulting PDF is written.
+    /// Output file where resulting PDF is written.
     #[clap(short, long, default_value = "merged_annotations.pdf")]
     dest: PathBuf,
     /// Exclude a given annotation type when merging (multiple values allowed).
@@ -141,7 +141,7 @@ struct Merge {
     exclude: Vec<String>,
 }
 
-/// Get annotations to a given page id.
+/// Get mutable annotations (references) to a given page id.
 fn get_page_annotations_mut<'doc>(
     document: &'doc mut Document,
     page_id: ObjectId,
@@ -228,6 +228,86 @@ impl Execute for Merge {
     }
 }
 
+/// Get annotation ids to a given page id.
+fn get_page_annotations<'doc>(document: &'doc Document, page_id: ObjectId) -> Vec<ObjectId> {
+    let page = document.get_dictionary(page_id).unwrap();
+    let mut ids = vec![];
+
+    match page.get(b"Annots") {
+        Ok(Object::Reference(ref id)) => document
+            .get_object(*id)
+            .and_then(Object::as_array)
+            .unwrap()
+            .iter()
+            .flat_map(Object::as_reference)
+            .for_each(|id| ids.push(id)),
+        Ok(Object::Array(a)) => {
+            a
+            .iter()
+            .flat_map(Object::as_reference)
+            .for_each(|id| ids.push(id))
+        }
+        Err(_) => {},
+        _ => unreachable!(),
+    }
+    ids
+}
+
+/// Strip command.
+#[derive(Args, Clone, Debug)]
+struct Strip {
+    /// PDF filepath.
+    file: PathBuf,
+    /// Output file where resulting PDF is written.
+    #[clap(short, long, default_value = "stripped_annotations.pdf")]
+    dest: PathBuf,
+    /// Exclude a given annotation type from stripping (multiple values allowed).
+    #[clap(short, long, default_value = "Link", action = ArgAction::Append)]
+    exclude: Vec<String>,
+}
+
+impl Execute for Strip {
+    fn execute<W>(&self, stdout: &mut W) -> Result<()>
+    where
+        W: WriteColor,
+    {
+        let mut document = Document::load(&self.file)
+            .with_context(|| format!("Failed to read PDF from: {}", self.file.to_str().unwrap()))?;
+
+        let mut delete_ids = vec![];
+
+        for page in document.page_iter() {
+            for id in get_page_annotations(&document, page) {
+                let subtype = document
+                    .get_dictionary(id)
+                    .unwrap()
+                    .get_deref(b"Subtype", &document)
+                    .and_then(Object::as_name_str)
+                    .unwrap_or("");
+
+                if !self.exclude.iter().any(|e| subtype == e) {
+                    delete_ids.push(id);
+                }
+            }
+        }
+
+        for id in delete_ids {
+            document.delete_object(id);
+        }
+
+        document.save(&self.dest)?;
+
+        writeln!(
+            stdout,
+            "Successfully striped annotations from {} to {}",
+            self.file.to_str().unwrap(),
+            self.dest.to_str().unwrap()
+        )?;
+
+        Ok(())
+    }
+}
+
 /// Annotations subcommand.
 #[derive(Clone, Debug, Subcommand)]
 enum AnnotationsSubcommand {
@@ -235,6 +315,8 @@ enum AnnotationsSubcommand {
     Stats(Stats),
     /// Merge annotations from multiple files into one.
     Merge(Merge),
+    /// Strip annotations from a given file.
+    Strip(Strip),
 }
 
 /// Work with PDF annotations.
@@ -254,6 +336,7 @@ impl Execute for AnnotationsCommand {
         match &self.subcommand {
             AnnotationsSubcommand::Stats(stats) => stats.execute(stdout),
             AnnotationsSubcommand::Merge(merge) => merge.execute(stdout),
+            AnnotationsSubcommand::Strip(strip) => strip.execute(stdout),
         }
     }
 }
