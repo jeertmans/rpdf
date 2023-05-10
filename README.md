@@ -65,7 +65,8 @@ and verify that all the annotations are present in the final product:
 
 #### Strip annotations
 
-If you want to remove some annotations from a PDF, you can do so with the `strip` command:
+If you want to remove some annotations from a PDF,
+you can do so with the `strip` command:
 
 ![strip](https://user-images.githubusercontent.com/27275099/235351437-5846c8bf-cd1c-4f27-9f3a-04257251251b.png)
 
