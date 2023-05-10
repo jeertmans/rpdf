@@ -2,7 +2,8 @@
 
 > PDF command-line utils written in Rust.
 
-*rpdf makes working with PDF annotions super easy! It can `merge` annotations from multiple files,
+*rpdf makes working with PDF annotions super easy!
+It can `merge` annotations from multiple files,
 some show statistics (`stats`) or `strip` specific (or all) annotations.*
 
 [![Crates.io](https://img.shields.io/crates/v/rpdf)](https://crates.io/crates/rpdf)
@@ -13,11 +14,13 @@ some show statistics (`stats`) or `strip` specific (or all) annotations.*
 
 ## About
 
-rpdf is a Rust binary that aims to provides an open source and straighforward command-line alternative to other
-tools such as [PDF Annotator](https://www.pdfannotator.com/en/help/filescombine) and others.
+rpdf is a Rust binary that aims to provides an open source and straighforward
+command-line alternative to other tools such as
+[PDF Annotator](https://www.pdfannotator.com/en/help/filescombine) and others.
 
-*Disclaimer: rpdf is currently in an early stage, and does not implement many features.
-I was first developed for my own use, because I needed to merge annotations from PDFs I review with other people.
+*Disclaimer: rpdf is currently in an early stage, and does not implement many
+features. I was first developed for my own use,
+because I needed to merge annotations from PDFs I review with other people.
 Do not hesitate to propose new features if you feel they could be intersting!*
 
 ## Installation
@@ -34,7 +37,8 @@ The command line tool is pretty straighforward to use and is self-documented:
 
 ![CLI](https://user-images.githubusercontent.com/27275099/235343778-01eceb0a-e138-4dbc-be0c-824a4ae01f06.png)
 
-Anytime you need help for a command, you can use `rpdf <COMMAND> --help`, or `-h` for the short version.
+Anytime you need help for a command, you can use `rpdf <COMMAND> --help`,
+or `-h` for the short version.
 
 ### Examples
 
