@@ -1,7 +1,7 @@
 [dependencies]
 anyhow = "1.0.71"
 clap = {version = "4.2.7", features = ["derive", "wrap_help", "env"]}
-clap_complete = "4.2.1"
+clap_complete = "4.2.2"
 is-terminal = "0.4.7"
 lopdf = {git = "https://github.com/J-F-Liu/lopdf.git", rev = "c919839"}
 owo-colors = "3.5.0"
