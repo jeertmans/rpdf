@@ -146,9 +146,7 @@ struct Merge {
 
 /// Get mutable annotations (references) to a given page id.
 fn get_page_annotations_mut(document: &mut Document, page_id: ObjectId) -> &mut Vec<Object> {
-    let page = document.get_dictionary(page_id).unwrap();
-
-    match page.get(b"Annots") {
+    match document.get_dictionary(page_id).unwrap().get(b"Annots") {
         Ok(Object::Reference(ref id)) => {
             document
                 .get_object_mut(*id)
@@ -162,11 +160,16 @@ fn get_page_annotations_mut(document: &mut Document, page_id: ObjectId) -> &mut 
                 .unwrap()
         },
         Err(_) => {
-            let page = document.get_dictionary_mut(page_id).unwrap();
-            page.set(b"Annots".to_owned(), vec![]);
-            page.get_mut(b"Annots")
-                .and_then(Object::as_array_mut)
+            let page_map = document
+                .get_dictionary_mut(page_id)
                 .unwrap()
+                .as_hashmap_mut();
+            Object::as_array_mut(
+                page_map
+                    .entry(b"Annots".to_vec())
+                    .or_insert(Object::Array(vec![])),
+            )
+            .unwrap()
         },
         _ => unreachable!(),
     }
