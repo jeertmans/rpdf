@@ -5,7 +5,7 @@ clap_complete = "4.2.2"
 is-terminal = "0.4.7"
 lopdf = "0.31.0"
 owo-colors = "3.5.0"
-tabled = {version = "0.12.0", features = ["color"]}
+tabled = {version = "0.12.2", features = ["color"]}
 termcolor = "1.2.0"
 thiserror = "1.0.40"
 wild = "2.1.0"
