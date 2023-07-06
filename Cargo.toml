@@ -1,6 +1,6 @@
 [dependencies]
 anyhow = "1.0.71"
-clap = {version = "4.2.7", features = ["derive", "wrap_help", "env"]}
+clap = {version = "4.3.11", features = ["derive", "wrap_help", "env"]}
 clap_complete = "4.2.2"
 is-terminal = "0.4.7"
 lopdf = "0.31.0"
