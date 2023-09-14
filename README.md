@@ -19,7 +19,7 @@ command-line alternative to other tools such as
 [PDF Annotator](https://www.pdfannotator.com/en/help/filescombine) and others.
 
 *Disclaimer: rpdf is currently in an early stage, and does not implement many
-features. I was first developed for my own use,
+features. It was first developed for my own use,
 because I needed to merge annotations from PDFs I review with other people.
 Do not hesitate to propose new features if you feel they could be intersting!*
 
