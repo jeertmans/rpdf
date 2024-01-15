@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::{Context, Result};
 use clap::{ArgAction, Args, Parser, Subcommand};
+use log::{error, info, warn};
 use lopdf::{Document, Object, ObjectId};
 use owo_colors::OwoColorize;
 use tabled::{
@@ -180,6 +181,8 @@ impl Execute for Merge {
     where
         W: WriteColor,
     {
+        info!("Reading reference document from {:?}", self.files[0]);
+
         let mut main = Document::load(&self.files[0]).with_context(|| {
             format!(
                 "Failed to read PDF from: {}",
@@ -187,12 +190,27 @@ impl Execute for Merge {
             )
         })?;
 
+        let pages = main.get_pages();
+        info!("Reference document contains {} pages", pages.len());
+
+        // Maps page number (note object id) to annotations
         let mut annotations_map = HashMap::new();
 
+        info!("Reading other file(s)...");
         for file in &self.files[1..] {
+            info!("Reading PDF document from {:?}", file);
             let document = Document::load(file)
                 .with_context(|| format!("Failed to read PDF from: {}", file.to_str().unwrap()))?;
-            for page in document.page_iter() {
+
+            info!("Iterating through pages...");
+            for (page_number, page) in (1u32..).zip(document.page_iter()) {
+                if !pages.contains_key(&page_number) {
+                    warn!(
+                        "Reference document does not contain page number {}. Annotations from \
+                         this page will be ignored.",
+                        page_number
+                    );
+                }
                 document
                     .get_page_annotations(page)
                     .into_iter()
@@ -207,17 +225,22 @@ impl Execute for Merge {
                     .for_each(|annotation| {
                         let id = main.add_object(annotation.clone());
                         annotations_map
-                            .entry(page)
+                            .entry(page_number)
                             .or_insert(vec![])
                             .push(Object::Reference(id));
                     });
             }
         }
 
-        for (page, new_ann) in annotations_map.iter_mut() {
-            let current_ann = get_page_annotations_mut(&mut main, *page);
+        for (page_number, new_ann) in annotations_map.iter_mut() {
+            match pages.get(page_number) {
+                Some(page_id) => {
+                    let current_ann = get_page_annotations_mut(&mut main, *page_id);
 
-            current_ann.append(new_ann);
+                    current_ann.append(new_ann);
+                },
+                None => error!("Main document does not have page number {page_number}"),
+            }
         }
 
         main.save(&self.dest)?;
