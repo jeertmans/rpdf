@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::{Context, Result};
 use clap::{ArgAction, Args, Parser, Subcommand};
+use log::{debug, error, info, log_enabled, trace, warn, Level::Info};
 use lopdf::{Document, Object, ObjectId};
 use owo_colors::OwoColorize;
 use tabled::{
@@ -31,7 +32,7 @@ impl Execute for Stats {
         W: WriteColor,
     {
         let document = Document::load(&self.file)
-            .with_context(|| format!("Failed to read PDF from: {}", self.file.to_str().unwrap()))?;
+            .with_context(|| format!("Failed to read PDF from: {:?}", self.file))?;
         let mut counters = vec![];
         let mut subtypes = HashSet::new();
 
@@ -95,6 +96,7 @@ impl Execute for Stats {
             let mut record = Vec::with_capacity(subtypes.len());
             let mut total = HashMap::with_capacity(subtypes.len());
 
+            debug!("Summing counts from each page...");
             for counter in counters {
                 for (subtype, count) in counter {
                     *total.entry(subtype).or_insert(0) += count;
@@ -117,6 +119,7 @@ impl Execute for Stats {
             .with(Style::modern());
 
         if stdout.supports_color() {
+            trace!("Stdout supports color so table will be colored");
             table.with(BorderColor::filled(Color::FG_GREEN));
         }
 
@@ -142,24 +145,30 @@ struct Merge {
     /// kept in <FILE 1>.
     #[clap(short, long, default_value = "Link", action = ArgAction::Append)]
     exclude: Vec<String>,
+    /// Overwrite output file if exists.
+    #[clap(short = 'f', long = "force")]
+    overwrite: bool,
 }
 
 /// Get mutable annotations (references) to a given page id.
 fn get_page_annotations_mut(document: &mut Document, page_id: ObjectId) -> &mut Vec<Object> {
     match document.get_dictionary(page_id).unwrap().get(b"Annots") {
         Ok(Object::Reference(ref id)) => {
+            trace!("This page contains a reference to a vector of annotations");
             document
                 .get_object_mut(*id)
                 .and_then(Object::as_array_mut)
                 .unwrap()
         },
         Ok(Object::Array(_)) => {
+            trace!("This page contains a vector of annotations");
             let page = document.get_dictionary_mut(page_id).unwrap();
             page.get_mut(b"Annots")
                 .and_then(Object::as_array_mut)
                 .unwrap()
         },
         Err(_) => {
+            trace!("This page does not contain any annotations, inserting an empty array");
             let page_map = document
                 .get_dictionary_mut(page_id)
                 .unwrap()
@@ -180,6 +189,32 @@ impl Execute for Merge {
     where
         W: WriteColor,
     {
+        if self.dest.exists()
+            && !self.overwrite
+            && !dialoguer::Confirm::new()
+                .with_prompt(format!(
+                    "Output file {:?} already exists. Do you want to overwrite it?",
+                    self.dest
+                ))
+                .interact()
+                .unwrap_or(false)
+        {
+            return Ok(());
+        }
+        if log_enabled!(Info) {
+            let mut msg = String::from("Processing documents: ");
+
+            self.files
+                .iter()
+                .enumerate()
+                .for_each(|(document_number, file)| {
+                    msg.push_str(&format!("{file:?} (#{document_number})"));
+                    if document_number < self.files.len() - 1 {
+                        msg.push_str(", ");
+                    }
+                });
+            info!("{msg}");
+        }
         let mut main = Document::load(&self.files[0]).with_context(|| {
             format!(
                 "Failed to read PDF from: {}",
@@ -187,12 +222,25 @@ impl Execute for Merge {
             )
         })?;
 
+        let pages = main.get_pages();
+        debug!("Reference document contains {} pages", pages.len());
+
+        // Maps page number (note object id) to annotations
         let mut annotations_map = HashMap::new();
 
-        for file in &self.files[1..] {
+        for (document_number, file) in (1..).zip(&self.files[1..]) {
+            debug!("Processing document #{document_number}");
             let document = Document::load(file)
                 .with_context(|| format!("Failed to read PDF from: {}", file.to_str().unwrap()))?;
-            for page in document.page_iter() {
+
+            for (page_number, page) in (1u32..).zip(document.page_iter()) {
+                if !pages.contains_key(&page_number) {
+                    warn!(
+                        "Reference document does not contain page number {}. Annotations from \
+                         this page will be ignored.",
+                        page_number
+                    );
+                }
                 document
                     .get_page_annotations(page)
                     .into_iter()
@@ -205,19 +253,33 @@ impl Execute for Merge {
                         return !self.exclude.iter().any(|e| subtype == e);
                     })
                     .for_each(|annotation| {
+                        trace!(
+                            "Found annotation on page {page_number} in document \
+                             #{document_number}, inserting it inside reference document"
+                        );
                         let id = main.add_object(annotation.clone());
                         annotations_map
-                            .entry(page)
+                            .entry(page_number)
                             .or_insert(vec![])
                             .push(Object::Reference(id));
                     });
             }
         }
 
-        for (page, new_ann) in annotations_map.iter_mut() {
-            let current_ann = get_page_annotations_mut(&mut main, *page);
+        info!("Updating the annotation arrays in reference document");
+        for (page_number, new_ann) in annotations_map.iter_mut() {
+            match pages.get(page_number) {
+                Some(page_id) => {
+                    debug!(
+                        "Retrieving a mutable reference to page's {page_number} annotations in \
+                         reference document"
+                    );
+                    let current_ann = get_page_annotations_mut(&mut main, *page_id);
 
-            current_ann.append(new_ann);
+                    current_ann.append(new_ann);
+                },
+                None => error!("Main document does not have page number {page_number}"),
+            }
         }
 
         main.save(&self.dest)?;
@@ -233,7 +295,7 @@ impl Execute for Merge {
     }
 }
 
-/// Get annotation ids to a given page id.
+/// Get annotation ids of a given page id.
 fn get_page_annotations(document: &Document, page_id: ObjectId) -> Vec<ObjectId> {
     let page = document.get_dictionary(page_id).unwrap();
     let mut ids = vec![];

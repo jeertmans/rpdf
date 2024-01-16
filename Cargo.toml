@@ -1,11 +1,15 @@
 [dependencies]
 anyhow = "1.0.71"
 clap = {version = "4.3.21", features = ["derive", "wrap_help", "env"]}
+clap-verbosity-flag = "2.1.1"
 clap_complete = "4.2.2"
+dialoguer = "0.11.0"
 is-terminal = "0.4.7"
+log = "0.4.20"
 lopdf = "0.31.0"
 owo-colors = "3.5.0"
 tabled = {version = "0.14.0", features = ["color"]}
+pretty_env_logger = "0.5.0"
 termcolor = "1.2.0"
 thiserror = "1.0.44"
 wild = "2.1.0"
@@ -20,5 +24,10 @@ license = "MIT"
 name = "rpdf"
 readme = "README.md"
 repository = "https://github.com/jeertmans/rpdf"
-rust-version = "1.64.0"
+rust-version = "1.70.0"
 version = "0.1.1"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+strip = true
