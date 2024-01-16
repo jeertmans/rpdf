@@ -189,17 +189,17 @@ impl Execute for Merge {
     where
         W: WriteColor,
     {
-        if self.dest.exists() && !self.overwrite {
-            if !dialoguer::Confirm::new()
+        if self.dest.exists()
+            && !self.overwrite
+            && !dialoguer::Confirm::new()
                 .with_prompt(format!(
                     "Output file {:?} already exists. Do you want to overwrite it?",
                     self.dest
                 ))
                 .interact()
                 .unwrap_or(false)
-            {
-                return Ok(());
-            }
+        {
+            return Ok(());
         }
         if log_enabled!(Info) {
             let mut msg = String::from("Processing documents: ");

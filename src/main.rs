@@ -12,8 +12,7 @@ fn main() {
         .filter_level(cli.verbose.log_level_filter())
         .init();
 
-    match cli.execute() {
-        Err(e) => error!("{e:#}"),
-        _ => (),
-    };
+    if let Err(e) = cli.execute() {
+        error!("{e:#}")
+    }
 }
