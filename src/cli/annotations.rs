@@ -145,6 +145,9 @@ struct Merge {
     /// kept in <FILE 1>.
     #[clap(short, long, default_value = "Link", action = ArgAction::Append)]
     exclude: Vec<String>,
+    /// Overwrite output file if exists.
+    #[clap(short = 'f', long = "force")]
+    overwrite: bool,
 }
 
 /// Get mutable annotations (references) to a given page id.
@@ -186,6 +189,18 @@ impl Execute for Merge {
     where
         W: WriteColor,
     {
+        if self.dest.exists() && !self.overwrite {
+            if !dialoguer::Confirm::new()
+                .with_prompt(format!(
+                    "Output file {:?} already exists. Do you want to overwrite it?",
+                    self.dest
+                ))
+                .interact()
+                .unwrap_or(false)
+            {
+                return Ok(());
+            }
+        }
         if log_enabled!(Info) {
             let mut msg = String::from("Processing documents: ");
 
