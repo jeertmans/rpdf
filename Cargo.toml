@@ -6,7 +6,7 @@ clap_complete = "4.2.2"
 dialoguer = "0.11.0"
 is-terminal = "0.4.7"
 log = "0.4.20"
-lopdf = "0.31.0"
+lopdf = "0.32.0"
 owo-colors = "3.5.0"
 tabled = {version = "0.14.0", features = ["color"]}
 pretty_env_logger = "0.5.0"
