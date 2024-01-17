@@ -1,7 +1,7 @@
 [dependencies]
 anyhow = "1.0.71"
 clap = {version = "4.3.21", features = ["derive", "wrap_help", "env"]}
-clap-verbosity-flag = "2.1.1"
+clap-verbosity-flag = "2.1.2"
 clap_complete = "4.2.2"
 dialoguer = "0.11.0"
 is-terminal = "0.4.7"
