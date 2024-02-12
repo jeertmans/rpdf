@@ -11,7 +11,7 @@ owo-colors = "4.0.0"
 tabled = {version = "0.14.0", features = ["color"]}
 pretty_env_logger = "0.5.0"
 termcolor = "1.2.0"
-thiserror = "1.0.44"
+thiserror = "1.0.57"
 wild = "2.2.1"
 
 [package]
