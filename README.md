@@ -2,7 +2,7 @@
 
 > PDF command-line utils written in Rust.
 
-*rpdf makes working with PDF annotions super easy!
+*rpdf makes working with PDF annotations super easy!
 It can `merge` annotations from multiple files,
 some show statistics (`stats`) or `strip` specific (or all) annotations.*
 
@@ -41,6 +41,8 @@ Anytime you need help for a command, you can use `rpdf <COMMAND> --help`,
 or `-h` for the short version.
 
 ### Examples
+
+Below, you can find usage examples of `rpdf` in the terminal.
 
 #### Annotations statistics
 
