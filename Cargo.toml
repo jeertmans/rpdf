@@ -4,7 +4,7 @@ clap = {version = "4.5.4", features = ["derive", "wrap_help", "env"]}
 clap-verbosity-flag = "2.2.0"
 clap_complete = "4.5.2"
 dialoguer = "0.11.0"
-is-terminal = "0.4.12"
+is-terminal = "0.4.13"
 log = "0.4.21"
 lopdf = "0.32.0"
 owo-colors = "4.0.0"
