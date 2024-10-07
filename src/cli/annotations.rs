@@ -1,3 +1,6 @@
+use std::fmt::Write;
+use log::{info, log_enabled, Level};
+
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
@@ -171,7 +174,7 @@ fn get_page_annotations_mut(document: &mut Document, page_id: ObjectId) -> &mut 
                 .unwrap()
         },
         Err(_) => {
-            trace!("This page does not contain any annotations, inserting an empty array");
+            trace!("Page ID {page_id}: This page does not contain any annotations, inserting an empty array.");
             let page_map = document
                 .get_dictionary_mut(page_id)
                 .unwrap()
@@ -204,19 +207,15 @@ impl Execute for Merge {
         {
             return Ok(());
         }
-        if log_enabled!(Info) {
-            let mut msg = String::from("Processing documents: ");
-
-            self.files
+        if log_enabled!(Level::Info) {
+            let document_info: Vec<String> = self.files
                 .iter()
                 .enumerate()
-                .for_each(|(document_number, file)| {
-                    msg.push_str(&format!("{file:?} (#{document_number})"));
-                    if document_number < self.files.len() - 1 {
-                        msg.push_str(", ");
-                    }
-                });
-            info!("{msg}");
+                .map(|(document_number, file)| format!("{file:?} (#{document_number})"))
+                .collect();
+
+                let msg = format!("Processing documents: {}", document_info.join(", "));
+            info!("{}.", msg);
         }
         let mut main = Document::load(&self.files[0]).with_context(|| {
             format!(
