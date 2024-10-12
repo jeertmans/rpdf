@@ -5,12 +5,12 @@ use std::{
 
 use anyhow::{Context, Result};
 use clap::{ArgAction, Args, Parser, Subcommand};
-use log::{debug, error, info, log_enabled, trace, warn, Level::Info};
+use log::{Level::Info, debug, error, info, log_enabled, trace, warn};
 use lopdf::{Document, Object, ObjectId};
 use owo_colors::OwoColorize;
 use tabled::{
     builder::Builder,
-    settings::{style::BorderColor, Color, Panel, Style},
+    settings::{Color, Panel, Style, style::BorderColor},
 };
 use termcolor::WriteColor;
 
@@ -31,14 +31,22 @@ impl Execute for Stats {
     where
         W: WriteColor,
     {
+<<<<<<< HEAD
         let document = Document::load(self.file)
             .with_context(|| format!("Failed to read PDF from: {:?}", self.file))?;
+=======
+        let document = Document::load(&self.file)
+            .with_context(|| format!("Failed to read PDF from: {:?}.", self.file))?;
+>>>>>>> 85f3c4e8c9845f468b57c250633363d773b01d2b
         let mut counters = vec![];
         let mut subtypes = HashSet::new();
 
         for page in document.page_iter() {
             let mut counter = HashMap::new();
-            for annotation in document.get_page_annotations(page) {
+            for annotation in document
+                .get_page_annotations(page)
+                .with_context(|| format!("Failed to get page annotations for page ID {page:?}."))?
+            {
                 let subtype = annotation
                     .get_deref(b"Subtype", &document)
                     .and_then(Object::as_name_str)
@@ -242,6 +250,9 @@ impl Execute for Merge {
                 }
                 document
                     .get_page_annotations(page)
+                    .with_context(|| {
+                        format!("Failed to get page annotations for page ID {page:?}.")
+                    })?
                     .into_iter()
                     .filter(|annotation| {
                         let subtype = annotation
