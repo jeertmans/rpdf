@@ -20,7 +20,7 @@ use super::traits::Execute;
 #[derive(Args, Clone, Debug)]
 struct Stats {
     /// PDF filepath.
-    file: PathBuf,
+    file: &Path,
     /// Show per page statistics.
     #[clap(short, long)]
     per_page: bool,
@@ -31,7 +31,7 @@ impl Execute for Stats {
     where
         W: WriteColor,
     {
-        let document = Document::load(&self.file)
+        let document = Document::load(self.file)
             .with_context(|| format!("Failed to read PDF from: {:?}", self.file))?;
         let mut counters = vec![];
         let mut subtypes = HashSet::new();
@@ -168,7 +168,7 @@ fn get_page_annotations_mut(document: &mut Document, page_id: ObjectId) -> &mut 
                 .unwrap()
         },
         Err(_) => {
-            trace!("This page (ID: {}) does not contain any annotations, inserting an empty array.", page_id);
+            trace!("This page (ID: {:?}) does not contain any annotations, inserting an empty array.", page_id);
             let page_map = document
                 .get_dictionary_mut(page_id)
                 .unwrap()
@@ -285,7 +285,7 @@ impl Execute for Merge {
 
         writeln!(
             stdout,
-            "Successfully merged annotations from {} files to {}",
+            "Successfully merged annotations from {} files to {:?}",
             self.files.len(),
             self.dest.to_str().unwrap()
         )?;
