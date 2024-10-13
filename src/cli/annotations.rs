@@ -31,13 +31,11 @@ impl Execute for Stats {
     where
         W: WriteColor,
     {
-<<<<<<< HEAD
-        let document = Document::load(self.file)
-            .with_context(|| format!("Failed to read PDF from: {:?}", self.file))?;
-=======
-        let document = Document::load(&self.file)
-            .with_context(|| format!("Failed to read PDF from: {:?}.", self.file))?;
->>>>>>> 85f3c4e8c9845f468b57c250633363d773b01d2b
+
+        let document = Document::load(self.file)  
+        
+        .with_context(|| format!("Failed to read PDF from: {:?}.", self.file))?;  
+
         let mut counters = vec![];
         let mut subtypes = HashSet::new();
 
@@ -296,7 +294,7 @@ impl Execute for Merge {
 
         writeln!(
             stdout,
-            "Successfully merged annotations from {} files to {:?}",
+            "Successfully merged annotations from {} files to {:?}.",
             self.files.len(),
             self.dest.to_str().unwrap()
         )?;
