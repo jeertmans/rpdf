@@ -32,9 +32,8 @@ impl Execute for Stats {
         W: WriteColor,
     {
 
-        let document = Document::load(self.file)  
-        
-        .with_context(|| format!("Failed to read PDF from: {:?}.", self.file))?;  
+        let document = Document::load(&self.file)  
+            .with_context(|| format!("Failed to read PDF from: {:?}.", self.file))?;   
 
         let mut counters = vec![];
         let mut subtypes = HashSet::new();
