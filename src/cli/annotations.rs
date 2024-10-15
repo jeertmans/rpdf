@@ -31,8 +31,10 @@ impl Execute for Stats {
     where
         W: WriteColor,
     {
-        let document = Document::load(&self.file)
-            .with_context(|| format!("Failed to read PDF from: {:?}.", self.file))?;
+
+        let document = Document::load(&self.file)  
+            .with_context(|| format!("Failed to read PDF from: {:?}.", self.file))?;   
+
         let mut counters = vec![];
         let mut subtypes = HashSet::new();
 
@@ -171,7 +173,7 @@ fn get_page_annotations_mut(document: &mut Document, page_id: ObjectId) -> &mut 
                 .unwrap()
         },
         Err(_) => {
-            trace!("This page does not contain any annotations, inserting an empty array");
+            trace!("This page (ID: {:?}) does not contain any annotations, inserting an empty array.", page_id);
             let page_map = document
                 .get_dictionary_mut(page_id)
                 .unwrap()
@@ -205,18 +207,17 @@ impl Execute for Merge {
             return Ok(());
         }
         if log_enabled!(Info) {
-            let mut msg = String::from("Processing documents: ");
+            let msg = format!(
+                "Processing documents: {}",
+                self.files
+                    .iter()
+                    .enumerate()
+                    .map(|(document_number, file)| format!("{:?} (#{})", file, document_number))
+                    .collect::<Vec<String>>() // Collect into a Vec<String>
+                    .join(", ")
+            );
 
-            self.files
-                .iter()
-                .enumerate()
-                .for_each(|(document_number, file)| {
-                    msg.push_str(&format!("{file:?} (#{document_number})"));
-                    if document_number < self.files.len() - 1 {
-                        msg.push_str(", ");
-                    }
-                });
-            info!("{msg}");
+            info!("{}.", msg);
         }
         let mut main = Document::load(&self.files[0]).with_context(|| {
             format!(
@@ -292,7 +293,7 @@ impl Execute for Merge {
 
         writeln!(
             stdout,
-            "Successfully merged annotations from {} files to {}",
+            "Successfully merged annotations from {} files to {:?}.",
             self.files.len(),
             self.dest.to_str().unwrap()
         )?;
