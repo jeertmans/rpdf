@@ -20,7 +20,7 @@ use super::traits::Execute;
 #[derive(Args, Clone, Debug)]
 struct Stats {
     /// PDF filepath.
-    file: &Path,
+    file: PathBuf,
     /// Show per page statistics.
     #[clap(short, long)]
     per_page: bool,
