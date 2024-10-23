@@ -1,6 +1,4 @@
 condense_wildcard_suffixes = true
-# error_on_line_overflow = true
-# error_on_unformatted = true
 force_multiline_blocks = true
 format_code_in_doc_comments = true
 format_macro_matchers = true
@@ -8,6 +6,6 @@ format_strings = true
 imports_granularity = "Crate"
 match_block_trailing_comma = true
 normalize_doc_attributes = true
+style_edition = "2024"
 unstable_features = true
-version = "Two"
 wrap_comments = true
